@@ -15,6 +15,7 @@ class Permissions(str, Enum):
     ACCOUNT_ALL_WRITE = 'payments.account.all:write'
 
     ACCOUNT_OWN_READ = 'payments.plan.own:read'
+    ACCOUNT_OWN_WRITE = 'payments.plan.own:write'
 
 
 class Environment(str, Enum):
@@ -49,6 +50,10 @@ class Settings(BaseSettings):
     # stripe
     STRIPE_SECRET_KEY: str = ''
     STRIPE_WEBHOOK_SECRET: str = ''
+
+    #paypal
+    PAYPAL_CLIENT_ID: str = ''
+    PAYPAL_CLIENT_SECRET: str = ''
 
 
 settings = Settings()

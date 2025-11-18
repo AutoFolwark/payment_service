@@ -10,6 +10,7 @@ class PaymentStatus(str, Enum):
     FAILED = "FAILED"
 
 class Purposes(str, Enum):
+    PLAN_PURCHASE = "PLAN_PURCHASE"
     CARFAX = "CARFAX"
 
 class PaymentBase(BaseModel):

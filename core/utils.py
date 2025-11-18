@@ -1,8 +1,12 @@
+from pathlib import Path
+
 from fastapi import Query
 from fastapi_pagination import Page
 from fastapi_pagination.customization import CustomizedPage, UseParamsFields, UseFieldsAliases
 from pydantic import BaseModel
 
+
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 def create_pagination_page(pydantic_model: type[BaseModel])-> type[Page[BaseModel]]:
     return CustomizedPage[

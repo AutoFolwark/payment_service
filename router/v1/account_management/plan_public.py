@@ -23,5 +23,5 @@ async def list_plans(
     db: AsyncSession = Depends(get_db),
 ):
     service = PlanService(db)
-    plans_query = await service.get_all(get_stmt=True)
+    plans_query = await service.get_all(get_stmt=True, order_by='price', sort='asc')
     return await apaginate(db, plans_query, params)
