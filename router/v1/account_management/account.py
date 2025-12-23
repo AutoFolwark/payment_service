@@ -5,6 +5,7 @@ from fastapi_problem import error as problem
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from config import Permissions
+from core.logger import logger
 from database.crud import TransactionService, UserAccountService
 from database.db.session import get_db
 from database.models.transaction import TransactionType
@@ -27,6 +28,7 @@ async def get_my_account(
     db: AsyncSession = Depends(get_db),
 ):
     account_service = UserAccountService(db)
+    logger.info(f'Searching for account for user: {current_user.uuid}')
     return await account_service.get_by_user_uuid(current_user.uuid)
 
 

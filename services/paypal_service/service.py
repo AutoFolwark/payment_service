@@ -3,9 +3,9 @@ import json
 import logging
 
 from apimatic_core.utilities.api_helper import ApiHelper
-from httpx import AsyncClient
 from paypalserversdk.controllers.orders_controller import OrdersController
 from paypalserversdk.controllers.payments_controller import PaymentsController
+from paypalserversdk.configuration import Environment as PaypalEnvironment
 from paypalserversdk.http.auth.o_auth_2 import ClientCredentialsAuthCredentials
 from paypalserversdk.logging.configuration.api_logging_configuration import LoggingConfiguration, \
     RequestLoggingConfiguration, ResponseLoggingConfiguration
@@ -19,7 +19,7 @@ from paypalserversdk.models.order_request import OrderRequest
 from paypalserversdk.models.purchase_unit_request import PurchaseUnitRequest
 from paypalserversdk.paypal_serversdk_client import PaypalServersdkClient
 
-from config import settings
+from config import settings, Environment
 from database.crud import PlanService
 from database.db.session import get_db_context
 from database.models.plan import Plan
@@ -27,7 +27,13 @@ from database.models.plan import Plan
 
 class PaypalService:
     def __init__(self):
+        if settings.ENVIRONMENT == Environment.PRODUCTION.value:
+            environment = PaypalEnvironment.PRODUCTION
+        else:
+            environment = PaypalEnvironment.SANDBOX
+
         self.paypal_client: PaypalServersdkClient = PaypalServersdkClient(
+            environment=environment,
             client_credentials_auth_credentials=ClientCredentialsAuthCredentials(
                 o_auth_client_id=settings.PAYPAL_CLIENT_ID,
                 o_auth_client_secret=settings.PAYPAL_CLIENT_SECRET,
@@ -111,4 +117,3 @@ if __name__ == "__main__":
         print(paypal_service.capture_order(order_id))
 
     asyncio.run(main())
-
