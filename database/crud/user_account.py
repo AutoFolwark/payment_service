@@ -1,4 +1,5 @@
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,13 +19,20 @@ class UserAccountService(
             select(UserAccount)
             .options(selectinload(UserAccount.plan))
             .where(UserAccount.user_uuid == user_uuid)
+            .order_by(UserAccount.id.desc())
+            .limit(1)
         )
         result = await self.session.execute(stmt)
         account = result.scalar_one_or_none()
         if account:
             return account
 
-        new_account = await self.create(
-            UserAccountCreate(user_uuid=user_uuid, plan_id=None)
-        )
-        return new_account
+        try:
+            new_account = await self.create(
+                UserAccountCreate(user_uuid=user_uuid, plan_id=None)
+            )
+            return new_account
+        except IntegrityError:
+            await self.session.rollback()
+            result = await self.session.execute(stmt)
+            return result.scalar_one_or_none()

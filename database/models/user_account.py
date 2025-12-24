@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, Index
+from sqlalchemy import ForeignKey, Index, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database.models import Base
@@ -33,4 +33,5 @@ class UserAccount(Base):
 
     __table_args__ = (
         Index("ix_user_account_user_plan", "user_uuid", "plan_id"),
+        UniqueConstraint("user_uuid", name="uq_user_account_user_uuid"),
     )
