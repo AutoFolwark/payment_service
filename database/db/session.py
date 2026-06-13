@@ -25,5 +25,8 @@ async def get_db()-> AsyncGenerator[AsyncSession | Any, Any]:
 @asynccontextmanager
 async def get_db_context():
     async with AsyncSessionLocal() as session:
+        
         yield session
+        await session.commit()
+
 

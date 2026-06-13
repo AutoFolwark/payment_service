@@ -21,9 +21,9 @@ class StripeService:
         self.cancel_url = cancel_url
         stripe.api_key = settings.STRIPE_SECRET_KEY
 
-    def create_checkout_session(self, product: Product) -> Session:
+    async def create_checkout_session(self, product: Product) -> Session:
         try:
-            session = stripe.checkout.Session.create(
+            session = await stripe.checkout.Session.create(
                 payment_method_types=["card"],
                 mode="payment",
                 line_items=[product.model_dump()],

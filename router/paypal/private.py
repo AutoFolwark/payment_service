@@ -16,12 +16,9 @@ from database.schemas.plan import PlanRead
 from database.schemas.transaction import TransactionCreate
 from database.schemas.user_account import UserAccountUpdate
 from services.paypal_service.service import PaypalService
+from schemas.plan import BuyPlanPayload
 
 paypal_private_router = APIRouter()
-
-
-class PaypalCreateOrderPayload(BaseModel):
-    plan_id: int
 
 
 class PaypalCapturePayload(BaseModel):
@@ -35,7 +32,7 @@ class PaypalCapturePayload(BaseModel):
     description=f"Create PayPal order for plan, required permissions: {Permissions.ACCOUNT_ALL_WRITE.value}",
 )
 async def paypal_create_order(
-    payload: PaypalCreateOrderPayload,
+    payload: BuyPlanPayload,
     db: AsyncSession = Depends(get_db),
     user: HeaderUser = Depends(require_permissions(Permissions.ACCOUNT_ALL_WRITE))
 ):
