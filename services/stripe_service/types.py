@@ -5,7 +5,7 @@ class ProductData(BaseModel):
     description: str
 
 class Price(BaseModel):
-    currency: str = 'EUR'
+    currency: str = 'USD'
     product_data: ProductData
     unit_amount: int
 

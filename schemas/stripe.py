@@ -10,5 +10,6 @@ class StripeCheckOutIn(BaseModel):
 
 class StripeCheckOutOut(BaseModel):
     link: HttpUrl
+    checkout_id: str
 
 

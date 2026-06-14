@@ -1,13 +1,15 @@
+import asyncio
+
 from AuthTools import HeaderUser
 from AuthTools.Permissions.dependencies import require_permissions
 from fastapi import APIRouter, Depends
-from rfc9457 import NotFoundProblem, ServerProblem
+from fastapi_problem import error as problem
 
 from config import Permissions
 from database.crud import PaymentService, PlanService
 from database.db.session import get_db
 from database.schemas.payment import PaymentCreate, PaymentStatus, Purposes
-from schemas.plan import BuyPlanPayload, BuyPlanStripePayload
+from schemas.plan import BuyPlanStripePayload
 from schemas.stripe import StripeCheckOutOut
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -26,24 +28,29 @@ async def buy_plan(
     plan_service = PlanService(db)
     plan = await plan_service.get(payload.plan_id)
     if not plan:
-        raise NotFoundProblem(title="Plan not found", detail="Plan not found")
+        raise problem.NotFoundProblem(detail="Plan not found")
 
-    
-    stripe_service = StripeService(success_url=payload.success_link, cancel_url=payload.cancel_link)
+    stripe_service = StripeService(
+        success_url=str(payload.success_link),
+        cancel_url=str(payload.cancel_link),
+    )
     product = Product(
         price_data=Price(
-            unit_amount=plan.price, 
+            unit_amount=int(round(plan.price * 100)),
             product_data=ProductData(
-                name=plan.name, 
-                description=plan.description
+                name=plan.name,
+                description=plan.description or "",
             )
         ),
         quantity=1
     )
     try:
-        stripe_session = await stripe_service.create_checkout_session(product)
+        stripe_session = await asyncio.to_thread(
+            stripe_service.create_checkout_session,
+            product,
+        )
     except Exception:
-        raise ServerProblem(title='Failed to connect to Stripe', detail="Unable to create Stripe checkout session")
+        raise problem.ServerProblem(detail="Unable to create Stripe checkout session")
 
     try:
         payment_service = PaymentService(db)
@@ -61,12 +68,10 @@ async def buy_plan(
             )
         )
     except Exception:
-        raise ServerProblem(title='Failed to create payment', detail="Unable to create payment")
+        try:
+            await stripe_service.expire_checkout_session(stripe_session.id)
+        except Exception:
+            pass
+        raise problem.ServerProblem(detail="Unable to create payment")
     
     return StripeCheckOutOut(link=stripe_session.url, checkout_id=stripe_session.id)
-
-
-
-
-
-

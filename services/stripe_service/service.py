@@ -1,3 +1,5 @@
+import asyncio
+
 import stripe
 from stripe.checkout import Session
 
@@ -21,9 +23,9 @@ class StripeService:
         self.cancel_url = cancel_url
         stripe.api_key = settings.STRIPE_SECRET_KEY
 
-    async def create_checkout_session(self, product: Product) -> Session:
+    def create_checkout_session(self, product: Product) -> Session:
         try:
-            session = await stripe.checkout.Session.create(
+            session = stripe.checkout.Session.create(
                 payment_method_types=["card"],
                 mode="payment",
                 line_items=[product.model_dump()],
@@ -33,6 +35,9 @@ class StripeService:
             return session
         except stripe.error.StripeError as e:
             raise RuntimeError(f"Stripe error: {str(e)}")
+
+    async def expire_checkout_session(self, session_id: str) -> None:
+        await asyncio.to_thread(stripe.checkout.Session.expire, session_id)
 
     @classmethod
     def decode_webhook(cls, event: dict) -> WebhookData:
